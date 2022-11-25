@@ -1,11 +1,5 @@
 ## Table of Contents
 
-1. [Arrays](#Arrays)
-   1. [HashTables](#HashTables)
-
-2. [Binary Search](#BinarySearch)
-
-
 # Arrays
 
 ## HashTable
@@ -53,9 +47,29 @@ def binary_search(arr, target):
     return -1
 ```
 
+## Algorithms
 
+### QuickSelect
 
+QuickSelect is a selection algorithm to find the k-th smallest/largest element in an unordered list. It is related to the quick sort sorting algorithm.
 
+```python
+def quick_select(arr, k):
+    if len(arr) == 1:
+        return arr[0]
+
+    pivot = random.choice(arr)
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+
+    if k <= len(left):
+        return quick_select(left, k)
+    elif k <= len(left) + len(middle):
+        return middle[0]
+    else:
+        return quick_select(right, k - len(left) - len(middle))
+```
 
 # Stack
 
@@ -339,6 +353,13 @@ Many problems involving lists of valid words leverage a trie as an optimization.
 
 
 # Backtracking
+
+Backtracking is a general algorithm for finding all (or some) solutions to some computational problems, notably constraint satisfaction problems, that incrementally builds candidates to the solutions, and abandons each partial candidate ("backtracks") as soon as it determines that the candidate cannot possibly be completed to a valid solution.
+
+- Sometimes is useful to think of backtracking as an intelligent "brute force" approach.
+- Recursive DFS is often a good way to implement backtracking
+
+
 
 # Graph
 
