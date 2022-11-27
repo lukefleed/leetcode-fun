@@ -1,6 +1,8 @@
-## Table of Contents
-
 # Arrays
+
+## Arrays
+
+Arrays are a collection of values. They are ordered and can be accessed by index. Arrays are zero-indexed, meaning the first element is at index 0. Arrays can be of any type, including other arrays.
 
 ## HashTable
 
@@ -358,17 +360,450 @@ Backtracking is a general algorithm for finding all (or some) solutions to some 
 
 - Sometimes is useful to think of backtracking as an intelligent "brute force" approach.
 - Recursive DFS is often a good way to implement backtracking
+- It's usually a good idea to start by writing a recursive backtracking every time you see a subset, combination, permutation, or partition problem.
 
 
+# Graphs
 
-# Graph
+Many programming problems can be solved by modeling the problem as a graph
+problem and using an appropriate graph algorithm.
+
+Atree is actually a type of graph, but not all graphs are trees. Simply put, a tree isa connected graph without cycles. A graph is simply a collection d nodes with edges between (some of) them.
+
+- Graphs can be either **directed** or **undirected**. While directed edges are like a one-way street, undirected edges are like a two-way street.
+- The graph might consist of multiple isolated subgraphs. If there is a path between every pair of vertices, it is called a "**connected graph**".
+- The graph can also have cycles (or not). An "**acyclic graph**" is one without cycles
+
+## Adjacency Lists
+This is the most common way to represent a graph. Every vertex (or node) stores a list of adjacent vertices. In an undirected graph, an edge like `(a, b)` would be stored twice: once in `a`'s adjacent vertices and once in `b`'s adjacent vertices.
+
+A simple class definition for a graph node could look essentially the same as a tree node.
+
+```python
+class Graph:
+    def __init__(self):
+        self.nodes = {}
+```
+
+```python
+class Node:
+    def __init__(self, val = 0, neighbors = None):
+        self.val = val
+        self.neighbors = neighbors if neighbors is not None else []
+```
+
+You don't necessarily need any additional classes to represent a graph. An array (or a hash table) of lists (arrays, arraylists, linked lists, etc.) can store the adjacency list.
+
+## Adjacency Matrix
+
+An adjacency matrix is an `NxN` boolean matrix (where `N` is the number of nodes), where a true value at `matrix[i][j]` indicates an edge from node `i` to node `j`. (You can also use an integer matrix with Os and 1s.)
+
+Note that in an undirected graph, an adjacency matrix will be symmetric. In a directed graph, it will not (necessarily) be.
+
+The same graph algorithms that are used on adjacency lists (breadth-first search, etc.) can be performed with adjacency matrices, but they may be somewhat less efficient. In the adjacency list representation, you can easily iterate through the neighbors of a node. In the adjacency matrix representation, you will need to iterate through all the nodes to identify a node's neighbors.
+
+## Graph Search
+
+The two most common ways to search a graph are **depth-first search** and **breadth-first search**.
+
+- In depth-first search (DFS), we start at the root (or another arbitrarily selected node) and explore each branch completely before moving on to the next branch. That is. we go deep first (hence the name depth-first search) before we go wide.
+
+- In breadth-first search (BFS), we start at the root (or another arbitrarily selected node) and explore each neighbor before going on to any of their children. That is, we go wide (hence breadth-first search) before
+we go deep.
+
+Breadth-first search and depth-first search tend to be used in different scenarios. DFS is often preferred if we want to visit every node in the graph. Both will work just fine, but depth-first search is a bit simpler. However, if we want to find the shortest path (or just any path) between two nodes, BFS is generally better.
+
+### DFS
+
+In DFS, we visit a node a and then iterate through each of a's neighbors. When visiting `a` node `b` that is a neighbor of `a`, we visit all of `b`'s  neighbors before going on to `a`'s other neighbors. That is, a exhaustively
+searches `b`'s branch before any of its other neighbors.
+
+Note that pre-order and other forms of tree traversal are a form of DFS. The key difference is that when implementing this algorithm for a graph, we must check if the node has been visited. If we don't, we risk getting stuck in an infinite loop.
+
+```python
+def dfs(node):
+    if node is None:
+        return
+    visit(node)
+    node.visited = True
+    for next in node.adjacent:
+        if next.visited == False:
+            dfs(next)
+```
+
+### BFS
+
+BFS is a bit less intuitive. The main tripping point is the (false) assumption that BFS is recursive. It's not. Instead, it uses a queue.
+
+In BFS, node a visits each of a's neighbors before visiting any of their neighbors. You can think of this as searching level by level out from a. An iterative solution involving a queue usually works best.
+
+```python
+def bfs(graph, start):
+    queue = []
+    queue.append(start)
+    start.visited = True
+    while queue:
+        r = queue.pop(0)
+        visit(r)
+        for n in r.adjacent:
+            if n.visited == False:
+                n.visited = True
+                queue.append(n)
+```
+If you are asked to implement BFS, the key thing to remember is the use of the queue. The rest of the algorithm flows from this fact.
+
+### Bidirectional Search
+
+Bidirectional search is used to find the shortest path between a source and destination node. It operates by essentially running two simultaneous breadth-first searches, one from each node. When their searches collide, we have found a path.
+
+![](https://i.imgur.com/AQTtl8H.png)
+
+To see why this is faster, consider a graph where every node has at most k adjacent nodes and the shortest path from node s to node t has length d.
+
+- In traditional breadth-first search, we would search up to `k` nodes in the first "level" of the search. In the second level, we would search up to `k` nodes for each of those first `k` nodes, so $k^2$ nodes total (thus far).
+We would do this $d$ times, so that's $O(k^d)$ nodes.
+
+-  In bidirectional search, we have two searches that collide after approximately $d/2$ levels (the midpoint of the path). The search from `s` visits approximately $2k^{d/2}$, as does the search from `t`. That's approximately $O(k^{d/2})$ nodes total.
+
+So the the bidirectional search is actually faster by a factor of $k^{d/2}$.
+
+### Topological Sort
+
+## Shortest Path
+
+Finding a shortest path between two nodes of a graph is an important problem
+that has many practical applications. For example, a natural problem related to a road network is to calculate the shortest possible length of a route between two cities, given the lengths of the roads.
+
+In an unweighted graph, the length of a path equals the number of its edges,
+and we can simply use breadth-first search to find a shortest path. However, we focus on weighted graphs where more sophisticated algorithms are needed for finding shortest paths
+
+### Bellman-Ford
+
+The Bellman–Ford algorithm finds shortest paths from a starting node to all
+nodes of the graph. The algorithm can process all kinds of graphs, provided that the graph does not contain a cycle with negative length. If the graph contains a negative cycle, the algorithm can detect this.
+
+The algorithm keeps track of distances from the starting node to all nodes
+of the graph. Initially, the distance to the starting node is 0 and the distance to all other nodes in infinite. The algorithm reduces the distances by finding edges that shorten the paths until it is not possible to reduce any distance
+
+The algorithm is based on the following observation: if we know the shortest path from the starting node to all nodes except one, we can find the shortest path to all nodes by adding one edge to the shortest path. The algorithm iterates through all edges of the graph and relaxes each edge. The relaxation of an edge means that we try to find a shorter path to the destination node of the edge by going through the source node of the edge. The algorithm repeats this process for a number of iterations, which is equal to the number of nodes in the graph. If the algorithm finds a shorter path to a node, it means that the graph contains a negative cycle. The algorithm can detect this by keeping track of the number of iterations. If the number of iterations is equal to the number of nodes in the graph, the graph contains a negative cycle.
+
+```python
+def bellman_ford(graph, source):
+    distance, predecessor = dict(), dict()
+    for node in graph:
+        distance[node] = float('inf')
+        predecessor[node] = None
+    distance[source] = 0
+    for _ in range(len(graph) - 1):
+        for u, v in graph.edges:
+            if distance[u] + graph.edges[u, v] < distance[v]:
+                distance[v] = distance[u] + graph.edges[u, v]
+                predecessor[v] = u
+    for u, v in graph.edges:
+        assert distance[u] + graph.edges[u, v] >= distance[v]
+    return distance, predecessor
+```
+The time complexity of the algorithm is $O(nm)$, because the algorithm consists of `n − 1` rounds and iterates through all `m` edges during a round. If there are no negative cycles in the graph, all distances are final after `n − 1` rounds, because each shortest path can contain at most `n − 1` edges.
+
+In practice, the final distances can usually be found faster than in `n − 1` rounds. Thus, a possible way to make the algorithm more efficient is to stop the algorithm if no distance can be reduced during a round.
+
+> **Note:** We need to use this algorithm when the graph contains negative edges. If the graph contains only positive edges, we can use Dijkstra's algorithm, which is more efficient.
 
 
+### Dijkstra's Algorithm
+
+Dijkstra’s algorithm finds shortest paths from the starting node to all nodes of the graph, like the Bellman–Ford algorithm. The benefit of Dijkstra's algorithm is that it is more efficient and can be used for processing large graphs. However, the algorithm requires that there are no negative weight edges in the graph.
+
+Like the Bellman–Ford algorithm, Dijkstra’s algorithm maintains distances
+to the nodes and reduces them during the search. Dijkstra’s algorithm is efficient, because it only processes each edge in the graph once, using the fact that there are no negative edges.
+
+An efficient implementation of Dijkstra’s algorithm requires that it is possible to efficiently find the minimum distance node that has not been processed. An appropriate data structure for this is a priority queue that contains the nodes ordered by their distances. Using a priority queue, the next node to be processed can be retrieved in logarithmic time
+
+```python
+def dijkstra(graph, source):
+    distance, predecessor = dict(), dict()
+    for node in graph:
+        distance[node] = float('inf')
+        predecessor[node] = None
+    distance[source] = 0
+    queue = PriorityQueue()
+    queue.put((0, source))
+    while not queue.empty():
+        _, u = queue.get()
+        for v in graph[u]:
+            alt = distance[u] + graph.edges[u, v]
+            if alt < distance[v]:
+                distance[v] = alt
+                predecessor[v] = u
+                queue.put((alt, v))
+    return distance, predecessor
+```
+
+The time complexity of the above implementation is $O(n + m \log m)$, because
+the algorithm goes through all nodes of the graph and adds for each edge at most one distance to the priority queue.
+
+### Floyd-Warshall
+
+The Floyd–Warshall algorithm provides an alternative way to approach the
+problem of finding shortest paths. Unlike the other algorithms of this chapter, it finds all shortest paths between the nodes in a single run.
+
+The algorithm maintains a two-dimensional array that contains distances
+between the nodes. First, distances are calculated only using direct edges between the nodes, and after this, the algorithm reduces distances by using intermediate nodes in paths.
+
+The advantage of the Floyd–Warshall algorithm that it is easy to implement. The following code constructs a distance matrix where `distance[a][b]` is the shortest distance between nodes a and b. First, the algorithm initializes distance using the adjacency matrix adj of the graph:
+
+```python
+def floyd_warshall(graph):
+    distance = {u: {v: float('inf') for v in graph} for u in graph}
+    for u in graph:
+        distance[u][u] = 0
+    for u, v in graph.edges:
+        distance[u][v] = graph.edges[u, v]
+    for k in graph:
+        for i in graph:
+            for j in graph:
+                distance[i][j] = min(distance[i][j], distance[i][k] + distance[k][j])
+    return distance
+```
+
+The time complexity of the algorithm is $O(n^3)$, because it contains three
+nested loops that go through the nodes of the graph. Since the implementation of the Floyd–Warshall algorithm is simple, the algorithm can be a good choice even if it is only needed to find a single shortest path in the graph. However, the algorithm can only be used when the graph is so
+small that a cubic time complexity is fast enough.
+
+# Recursion
+
+While there are a large number of recursive problems, many follows similar patterns. A good hint that a problem is recursive is that it can be built of sub-problems of the same type.
+
+When you hear a problem beginning with the following statements, it's often (though not always) a good candidate for recursion:
+
+- _Design an algorithm to compute the nth ..._
+- _Write code to list the first n ..._
+- _Implement a method to compute all ..,_
+
+Recursive solutions, by definition, are built off of solutions to subproblems. Many times, this will mean simply to compute $f(n)$ by adding something, removing something, or otherwise changing the solution
+for $f(n-1)$. In other cases, you might solve the problem for the first half of the data set, then the second half, and then merge those results.
+There are many ways you might divide a problem into subproblems.Three of the most common approaches to develop an algorithm are bottom-up, top-down, and half-and-half.
+
+## Bottom-Up
+
+The bottom-up approach is often the most intuitive. We start with knowing how to solve the problem for a simple case, like a list with only one element. Then we figure out how to solve the problem for two
+elements, then for three elements, and so on. The key here is to think about how you can build the solution for one case off of the previous case (or multiple previous cases).
+
+## Top-Down
+
+The top-down approach can be more complex since it's less concrete. But sometimes, it's the best way to think about the problem.
+
+In these problems, we think about how we can divide the problem for case `N` into subproblems. Be careful of overlap between the cases.
+
+## Half-and-Half
+
+In addition to top-down and bottom-up approaches, it's often effective to divide the data set in half.
+
+For example, binary search works with a "half-and-half" approach. When we look for an element in a sorted array, we first figure out which half of the array contains the value. Then we recurse and search for it in that half.
+
+Merge sort is also a "half-and-half" approach. We sort each half of the array and then merge together the
+sorted halves.
+
+## Recursion vs. Iteration
+
+Recursive algorithms can be very space inefficient. Each recursive call adds a new layer to the stack, which means that if your algorithm recurses to a depth of `n`, it uses at least $O(n)$ memory.
+
+For this reason, it's often better to implement a recursive algorithm iteratively. All recursive algorithms can be implemented iteratively, although sometimes the code to do so is much more complex. Before diving
+into recursive code, ask yourself how hard it would be to implement it iteratively,
 
 # Dynamic Programming
+
+Dynamic programming is a technique that combines the correctness of complete search and the efficiency of greedy algorithms. Dynamic programming can be applied if the problem can be divided into overlapping subproblems that can be solved independently.
+
+There are two uses for dynamic programming:
+-  **Finding an optimal solution**: We want to find a solution that is as large as possible or as small as possible.
+-  **Counting the number of solutions:** We want to calculate the total number of possible solutions.
 
 # Greedy
 
 # Intervals
 
 # Bit Manipulation
+
+All data in computer programs is internally stored as bits, i.e., as numbers 0 and 1. In programming, an n bit integer is internally stored as a binary number that consists of `n` bits. For example, the `C++` type int is a `32-bit` type, which means that every `int` number consists of 32 bits.
+
+The bits in the representation are indexed from right to left. To convert a bit representation $b_k · · · b_2 b_1 b_0 into a number, we can use the formula
+
+$$ \sum_{i=0}^k b_i 2^i $$
+
+For example, the number 13 is represented as 1101 in binary. To convert it to a decimal number, we can use the formula:
+
+$$ 1 \cdot 2^3 + 1 \cdot 2^2 + 0 \cdot 2^1 + 1 \cdot 2^0 = 8 + 4 + 0 + 1 = 13 $$
+
+The following code converts a binary number to a decimal number:
+
+```python
+def binary_to_decimal(binary):
+    decimal = 0
+    for digit in binary:
+        decimal = decimal * 2 + int(digit)
+    return decimal
+```
+
+The time complexity of the above implementation is $O(n)$, where $n$ is the length of the binary number.
+
+The bit representation of a number is either signed or unsigned. Usually a signed representation is used, which means that both negative and positive numbers can be represented. signed variable of n bits can contain any integer
+between $-2^{n-1}$ and $2^{n-1} - 1$. For example, the `C++` type `int` is a signed `32-bit` type, which means that it can contain any integer between $-2^{31}$ and $2^{31} - 1$.
+
+The first bit in a signed representation is the sign of the number (`0` for nonnegative numbers and `1` for negative numbers), and the remaining `n−1` bits contain the magnitude of the number. Two’s complement is used, which means that the opposite number of a number is calculated by first inverting all the bits in the number, and then increasing the number by one.
+
+For example, the number 13 is represented as 1101 in binary. To convert it to a two’s complement representation, we first invert all the bits:
+
+$$ \overline{1101} = 0010 $$
+
+Then we increase the number by one:
+
+$$ 0010 + 1 = 0011 $$
+
+The result is the two’s complement representation of the number 13, which is 0011. The number -13 is represented as 1101 in binary. To
+
+In an unsigned representation, only nonnegative numbers can be used, but the upper bound for the values is larger. An unsigned variable of `n` bits can contain any integer between 0 and $2^n - 1$. For example, the `C++` type `unsigned int` is an unsigned `32-bit` type, which means that it can contain any integer between 0 and $2^{32} - 1$.
+
+## Bitwise Operators
+
+### Bitwise AND
+
+The bitwise AND operator `&` compares two numbers on a bit level and returns a number where the bits of that number are turned on if the corresponding bits of both numbers are `1`.
+
+For example, the number 13 is represented as 1101 in binary. The number 7 is represented as 0111 in binary. The bitwise AND of 13 and 7 is 0101, which is the number 5.
+
+```python
+def bitwise_and(a, b):
+    return a & b
+```
+### Bitwise OR
+
+The bitwise OR operator `|` compares two numbers on a bit level and returns a number where the bits of that number are turned on if the corresponding bits of either of the two numbers are `1`.
+
+For example, the number 13 is represented as 1101 in binary. The number 7 is represented as 0111 in binary. The bitwise OR of 13 and 7 is 1111, which is the number 15.
+
+```python
+def bitwise_or(a, b):
+    return a | b
+```
+
+### Bitwise XOR
+
+The bitwise XOR operator `^` compares two numbers on a bit level and returns a number where the bits of that number are turned on if the corresponding bits of either of the two numbers are `1`, but not both.
+
+For example, the number 13 is represented as 1101 in binary. The number 7 is represented as 0111 in binary. The bitwise XOR of 13 and 7 is 1010, which is the number 10.
+
+```python
+def bitwise_xor(a, b):
+    return a ^ b
+```
+
+### Bitwise NOT
+
+The bitwise NOT operator `~` inverts all the bits of its operand.
+
+For example, the number 13 is represented as 1101 in binary. The bitwise NOT of 13 is 0010, which is the number 2.
+
+```python
+def bitwise_not(a):
+    return ~a
+```
+
+### Bitwise Shifts
+
+The bitwise left shift operator `<<` shifts the bits of its first operand the specified number of positions to the left. The bits shifted off the left end are discarded. The bits on the right end are filled with zeros.
+
+For example, the number 13 is represented as 1101 in binary. The bitwise left shift of 13 by 1 is 1010, which is the number 10.
+
+```python
+def bitwise_left_shift(a, b):
+    return a << b
+```
+
+The bitwise right shift operator `>>` shifts the bits of its first operand the specified number of positions to the right. The bits shifted off the right end are discarded. The bits on the left end are filled with zeros.
+
+For example, the number 13 is represented as 1101 in binary. The bitwise right shift of 13 by 1 is 0110, which is the number 6.
+
+```python
+def bitwise_right_shift(a, b):
+    return a >> b
+```
+
+## Bitwise Tricks
+
+### Check if a number is even or odd
+
+A number is even if the last bit is `0` and odd if the last bit is `1`. We can check if a number is even or odd by checking the last bit of the number. If the last bit is `0`, the number is even, otherwise, it is odd.
+
+```python
+def is_even(a):
+    return a & 1 == 0
+```
+
+### Check if a number is a power of two
+
+A number is a power of two if it has only one bit set to `1`. We can check if a number is a power of two by checking if the number has only one bit set to `1`.
+
+```python
+def is_power_of_two(a):
+    return a & (a - 1) == 0
+```
+
+### Swap two numbers
+
+We can swap two numbers by using the bitwise XOR operator `^`. The bitwise XOR of two numbers is `0` if the two numbers are the same, and it is `1` if the two numbers are different. We can use this property to swap two numbers.
+
+```python
+def swap(a, b):
+    a ^= b
+    b ^= a
+    a ^= b
+    return a, b
+```
+
+### Get the last set bit
+
+We can get the last set bit of a number by using the bitwise AND operator `&` with the two’s complement of the number.
+
+```python
+
+def get_last_set_bit(a):
+    return a & -a
+```
+
+### Hamming distance
+
+The Hamming distance between two integers is the number of positions at which the corresponding bits are different.
+
+Given two integers `x` and `y`, calculate the Hamming distance.
+
+```python
+def hamming_distance(x, y):
+    return bin(x ^ y).count('1')
+```
+
+### Count the number of set bits
+
+We can count the number of set bits in a number by repeatedly clearing the last set bit of the number until the number becomes `0`.
+
+```python
+def count_set_bits(a):
+    count = 0
+    while a:
+        a &= a - 1
+        count += 1
+    return count
+```
+
+### Reverse bits
+
+We can reverse the bits of a number by repeatedly shifting the number to the right and appending the last bit to the result.
+
+```python
+def reverse_bits(a):
+    result = 0
+    for _ in range(32):
+        result = (result << 1) | (a & 1)
+        a >>= 1
+    return result
+```
